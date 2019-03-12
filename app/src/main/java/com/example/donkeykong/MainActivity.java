@@ -39,6 +39,8 @@ public class MainActivity extends AppCompatActivity {
         int dx, dy;
         int height, width;
         ArrayList<Girder> g;
+        Mario m;
+        ArrayList<Barrel> b;
 
         private long thisTimeFrame;
         public DonkeyView(Context context) {
@@ -55,14 +57,19 @@ public class MainActivity extends AppCompatActivity {
             dx = 20;
             dy = 45;
 
-           g.add(new Girder());
-
+           g.add(new Girder(width,0,height,height-10,1));
+           int barrels=1;
 
             while (playing)
             {
                 while(g.get(0).sy>height){
                     g.remove(g.get(0));
-                    g.add(new Girder());
+                    if(g.get(g.size()-1).dir==0){
+                        g.add(new Girder(g.get(g.size()-1).fx-10,0,g.get(g.size()-1).fy-15,g.get(g.size()-1).fy+50,1));
+                    }
+                    else{
+                        g.add(new Girder(g.get(g.size()-1).fx-));
+                    }
                 }
                 if (!paused) {
                     update();
