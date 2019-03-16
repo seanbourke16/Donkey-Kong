@@ -3,12 +3,17 @@ package com.example.donkeykong;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -48,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<Girder> g;
         Mario m;
         ArrayList<Barrel> b;
+        Bitmap bit;
+        int shift;
 
         private long thisTimeFrame;
         public DonkeyView(Context context) {
@@ -85,15 +92,18 @@ public class MainActivity extends AppCompatActivity {
                     if(g.size()!=0) {
                         //g.remove(0);
                         if (g.get(g.size() - 1).dir == 0) {
-                            g.add(new Girder(0, g.get(g.size() - 1).rx - 60, g.get(g.size() - 1).ry - 90, g.get(g.size() - 1).ry - 70, 1));
+                            g.add(new Girder(0, g.get(g.size() - 1).rx - 60, g.get(g.size() - 1).ry - 70, g.get(g.size() - 1).ry - 50, 1));
                         } else {
-                            g.add(new Girder(60, width, g.get(g.size() - 1).ly - 70, g.get(g.size() - 1).ly - 90, 0));
+                            g.add(new Girder(60, width, g.get(g.size() - 1).ly - 50, g.get(g.size() - 1).ly - 70, 0));
                         }
                         g.get(g.size()-1).next=g.get(g.size()-2);
+                        g.get(g.size()-2).prev=g.get(g.size()-1);
                         Log.e("Or",""+g.get(g.size()-1).dir);
                     }
                     else{
                         g.add(new Girder(0,width,height,height-25,0));
+                        g.get(0).m=m;
+                        m.g=g.get(0);
                     }
                     Log.e("Size",""+g.size());
                 }
@@ -118,6 +128,34 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+
+        public void shiftDown(){
+            if(shift>0){
+                m.y+=5;
+                for(int i=0;i<g.size();i++){
+                    g.get(i).ly+=5;
+                    g.get(i).ry+=5;
+                    for(int k=0;k<g.get(i).b.size();k++){
+                       g.get(i).b.get(k).y+=5;
+                    }
+                    if(g.get(i).u1!=null){
+                        g.get(i).u1.y1+=5;
+                        g.get(i).u1.y2+=5;
+                        g.get(i).u1.y3+=5;
+                        g.get(i).u1.y4+=5;
+                    }
+                    if(g.get(i).u2!=null){
+                        g.get(i).u2.y1+=5;
+                        g.get(i).u2.y2+=5;
+                        g.get(i).u2.y3+=5;
+                        g.get(i).u2.y4+=5;
+                    }
+
+                }
+                shift-=5;
+            }
+        }
+
         public void update() {
             Random r=new Random();
             y = y + 5;
@@ -131,6 +169,11 @@ public class MainActivity extends AppCompatActivity {
             if ((posy > height) || (posy < 0))
                 dy = -dy;
             //g.get(0).update();
+            if(m.y<height/3*2&&shift==0){
+                shift=height/3;
+            }
+            //shiftDown();
+            if(!m.dead)m.update();
             for(int x=0;x<g.size();x++){
                 g.get(x).update();
                 if(x!=0){
@@ -144,7 +187,7 @@ public class MainActivity extends AppCompatActivity {
                             if(g.get(x).u2!=null&&(g.get(x).u2.lx-50<lx&&g.get(x).u2.rx+50>lx))continue;
                             break;
                         }
-                        g.get(x).d1=new Ladder(g.get(x-1),g.get(x),lx,lx+25);
+                        g.get(x).d1=new Ladder(g.get(x-1),g.get(x),lx,lx+25,r.nextInt(2));
                         if(g.get(x-1).u1==null)g.get(x-1).u1=g.get(x).d1;
                         else g.get(x-1).u2=g.get(x).d1;
                     }
@@ -159,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
                             if(g.get(x).u2!=null&&(g.get(x).u2.lx-50<lx&&g.get(x).u2.rx+50>lx))continue;
                             break;
                         }
-                        g.get(x).d2=new Ladder(g.get(x-1),g.get(x),lx,lx+25);
+                        g.get(x).d2=new Ladder(g.get(x-1),g.get(x),lx,lx+25,r.nextInt(2));
                         if(g.get(x-1).u1==null)g.get(x-1).u1=g.get(x).d2;
                         else g.get(x-1).u2=g.get(x).d2;
                     }
@@ -176,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
                             if(g.get(x).u2!=null&&(g.get(x).u2.lx-50<lx&&g.get(x).u2.rx+50>lx))continue;
                             break;
                         }
-                        g.get(x).u1=new Ladder(g.get(x+1),g.get(x),lx,lx+25);
+                        g.get(x).u1=new Ladder(g.get(x+1),g.get(x),lx,lx+25,r.nextInt(2));
                         if(g.get(x+1).d1==null)g.get(x+1).d1=g.get(x).u1;
                         else g.get(x+1).d2=g.get(x).u1;
                     }
@@ -191,7 +234,7 @@ public class MainActivity extends AppCompatActivity {
                             if(g.get(x).u1!=null&&(g.get(x).u1.lx-50<lx&&g.get(x).u1.rx+50>lx))continue;
                             break;
                         }
-                        g.get(x).u2=new Ladder(g.get(x+1),g.get(x),lx,lx+25);
+                        g.get(x).u2=new Ladder(g.get(x+1),g.get(x),lx,lx+25,r.nextInt(2));
                         if(g.get(x+1).d1==null)g.get(x+1).d1=g.get(x).u1;
                         else g.get(x+1).d2=g.get(x).u1;
                     }
@@ -200,6 +243,17 @@ public class MainActivity extends AppCompatActivity {
             }
 
         }
+
+        BitmapDrawable flip(BitmapDrawable d)
+        {
+            Matrix m = new Matrix();
+            m.preScale(-1, 1);
+            Bitmap src = d.getBitmap();
+            Bitmap dst = Bitmap.createBitmap(src, 0, 0, src.getWidth(), src.getHeight(), m, false);
+            dst.setDensity(DisplayMetrics.DENSITY_DEFAULT);
+            return new BitmapDrawable(dst);
+        }
+
         public void draw() {
             if (ourHolder.getSurface().isValid()) {
                 // Lock the canvas ready to draw
@@ -209,7 +263,7 @@ public class MainActivity extends AppCompatActivity {
                 height = canvas.getHeight();
 
                 // Draw the background color
-                canvas.drawColor(Color.argb(255, 26, 128, 182));
+                canvas.drawColor(Color.argb(255, 0, 0, 0));
 
                 // Choose the brush color for drawing
                 paint.setColor(Color.argb(255, 255, 255, 255));
@@ -221,7 +275,30 @@ public class MainActivity extends AppCompatActivity {
                     g.get(x).draw(canvas,paint);
                 }
 
-                m.draw(height,width);
+                if(!m.dead) {
+                    m.draw(height, width, canvas, paint);
+                    if(m.f==0) {
+                        if(m.face==0)bit = BitmapFactory.decodeResource(getResources(), R.drawable.mario);
+                        else bit = BitmapFactory.decodeResource(getResources(), R.drawable.mariol);
+                    }
+                    else{
+                        if(m.face==0)bit = BitmapFactory.decodeResource(getResources(), R.drawable.mariojro);
+                        else bit = BitmapFactory.decodeResource(getResources(), R.drawable.mariojl);
+                    }
+                    Rect r = new Rect((int) (m.x - 10), (int) (m.y - 35), (int) (m.x + 10), (int) (m.y));
+
+                    canvas.drawBitmap(bit, null, r, null);
+                }
+                else{
+                    paint.setColor(Color.argb(255,0,255,0));
+                    Rect r = new Rect(width/2-100, height/2-50, width/2+100, height/2+50);
+                    canvas.drawRect(r,paint);
+                    paint.setColor(Color.argb(255,255,255,255));
+                    paint.setTextSize(25);
+                    canvas.drawText("Game Over", width/2-(paint.measureText("Game Over")/2),(float)(height/2-12.5),paint);
+                    canvas.drawText("Restart?", width/2-(paint.measureText("Restart?")/2),(float)(height/2+37.5),paint);
+                }
+                //m.draw(height,width,canvas,paint);
 
                 // canvas.drawCircle(posx, posy, 30l, paint);
                 //g.get(0).draw(canvas,paint);
@@ -250,8 +327,27 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public boolean onTouchEvent(MotionEvent motionEvent) {
-            if (motionEvent.getAction() == android.view.MotionEvent.ACTION_DOWN)
-                paused = !paused;
+            if (motionEvent.getAction() == android.view.MotionEvent.ACTION_DOWN) {
+                if (paused) {
+                    paused = false;
+                    return true;
+                }
+                float x = motionEvent.getX();
+                float y = motionEvent.getY();
+                if (x < width / 3) {
+                    m.move = 1;
+                } else if (x > width / 3 * 2) {
+                    m.move = 0;
+                } else if (y > height / 2) {
+                    m.move=2;
+                }
+                else if(y<height/2){
+                    m.move=3;
+                }
+                Log.e("touch","move: "+m.move+" l"+m.l);
+                return true;
+            }
+            m.move=-1;
             return true;
         }
     }

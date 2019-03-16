@@ -20,7 +20,9 @@ public class Girder {
     Ladder d1;
     Ladder d2;
     Girder next;
+    Girder prev;
     ArrayList<Barrel> b;
+    Mario m;
 
     public Girder(int x1,int x2, int x3, int x4, int dir1){
         lx=x1;
@@ -30,6 +32,8 @@ public class Girder {
         dir=dir1;
         b=new ArrayList<>();
         next=null;
+        prev=null;
+        m=null;
     }
 
     public void update(){
@@ -41,6 +45,7 @@ public class Girder {
             else{
                 b.get(x).update();
             }
+            //m.update();
         }
     }
 
